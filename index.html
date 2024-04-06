@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" type="text/css" href="2.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js">
+  </script>
+  <title>A Firebase-Based Data Mining System Using TensorFlow</title>
+</head>
+
+<body>
+
+  <div id="body">
+    <center>
+      <table width="96%">
+        <tr>
+          <td align="center">
+
+            <center>
+              <font color="#3366CC" face="Helvetica" size="+2">
+                <b>A Firebase-Based Data Mining System Using TensorFlow</b>
+              </font>
+            </center><br />
+            <font size="+1">
+
+              <table width="100%">
+                <tr>
+                  <td width="40%" valign="top">
+                    <font size="+1">
+
+                      <form id="contact">
+                        Price: $<input type="text" size="5" id="price" value="250" />
+                        <br /><br class="e" />
+                        Display Size: <input type="text" size="5" id="display" value="6.6" /> inches
+                        <br /><br />
+                        Memory: <input type="text" size="5" id="memory" value="64" /> GB
+                        <br /><br class="e" />
+                        Resolution: <input type="text" size="5" id="resolution" value="320" /> px
+                        <br /><br class="e" />
+                        Condition: <select id="condition" name="condition">
+                          <option value="new">New</option>
+                          <option value="used">Used</option>
+                        </select>
+                        <br /><br class="e" />
+
+                        <p id="result">[result]</p>
+
+                    </font>
+                  </td>
+                  <td width="3%" />
+                  <td valign="top">
+                    <font size="+1">
+
+                      <button type="submit" onClick="addPhone( ); return false;">Add a phone</button> &nbsp; (required:
+                      price, display, memory, resolution, condition)<br /><br />
+
+                      <button type="submit" onClick="showAll( ); return false;">Show all phones</button><br /><br
+                        class="e" />
+
+                      <button type="submit" onClick="deleteDB( ); return false;">System Reset</button><br
+                        class="e" /><br class="e" />
+
+
+                      </form>
+                    </font>
+                  </td>
+                </tr>
+              </table>
+
+              <script type="module">
+                // Import the functions you need from the SDKs you need
+                // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+                // import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+                // TODO: Add SDKs for Firebase products that you want to use
+                // https://firebase.google.com/docs/web/setup#available-libraries
+
+                // Your web app's Firebase configuration
+                // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+                const firebaseConfig = {
+                  apiKey: "",
+                  authDomain: "",
+                  databaseURL: "",
+                  projectId: "",
+                  storageBucket: "",
+                  messagingSenderId: "",
+                  appId: "",
+                  measurementId: ""
+                };
+
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                var usersRef = firebase.database().ref('phones/');
+              </script>
+
+              <script>
+
+                function addPhone() {
+                  // Get the input values.
+                  var price = getInputVal('price');
+                  var display = getInputVal('display');
+                  var memory = getInputVal('memory');
+                  var resolution = getInputVal('resolution');
+                  var condition = getInputVal('condition');
+
+                  // Get a reference to the 'phones' collection in the database.
+                  var phonesRef = firebase.database().ref('phones');
+
+                  // Push a new phone object with auto-generated ID.
+                  var newPhoneRef = phonesRef.push();
+                  newPhoneRef.set({
+                    price: price,
+                    display: display,
+                    memory: memory,
+                    resolution: resolution,
+                    condition: condition
+                  });
+
+                  var out = "Added Phone: <font color='#3366CC;'><em>:";
+                  out += "$" + price + ", " + display + " inches, " + memory + "GB, " + resolution + "px, " +  condition + "</em></font>";
+
+                  document.getElementById('result').innerHTML = out;
+                }
+
+                //
+                // Function to get form values
+                //
+                function getInputVal(input) {
+                  return document.getElementById(input).value;
+                }
+
+                function showAll() {
+                  var ref = firebase.database().ref('phones/');
+                  ref.on("value", snapshot => {
+                    var data = [];
+                    snapshot.forEach(child => {
+                      var ref1 = firebase.database().ref('phones/' + child.key);
+                      ref1.on("value", snapshot => {
+                        var obj = {};
+                        snapshot.forEach(child => {
+                          obj[child.key] = child.val();
+                        });
+                        data.push(obj);
+                        var jsonString = JSON.stringify(data, null, 2);
+                        var htmlString = "<pre>" + jsonString + "</pre>";
+                        document.getElementById('result').innerHTML = htmlString;
+                      });
+                    });
+                  });
+                  return false;
+                }
+
+
+                //
+                // Delete the database phones
+                //
+                function deleteDB() {
+                  var userRef = firebase.database().ref('phones/');
+                  userRef.remove();
+                  var out = "Database <font color='#3366CC;'><em>phones</em></font> deleted";
+                  document.getElementById('result').innerHTML = out;
+                  return (false);
+                }
+
+
+              </script>
+
+          </td>
+        </tr>
+      </table>
+    </center>
+
+    </font>
+  </div>
+</body>
+
+</html>
