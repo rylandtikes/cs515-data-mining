@@ -1,0 +1,79 @@
+[
+    {
+      "condition": "new",
+      "display": 5.6,
+      "memory": 64,
+      "price": 250,
+      "resolution": 320
+    },
+    {
+      "condition": "new",
+      "display": 6.6,
+      "memory": 64,
+      "price": 350,
+      "resolution": 640
+    },
+    {
+      "condition": "new",
+      "display": 6.6,
+      "memory": 128,
+      "price": 450,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 6.6,
+      "memory": 128,
+      "price": 400,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 6.6,
+      "memory": 32,
+      "price": 300,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 6.6,
+      "memory": 32,
+      "price": 300,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 6.6,
+      "memory": 32,
+      "price": 300,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 6.6,
+      "memory": 32,
+      "price": 500,
+      "resolution": 640
+    },
+    {
+      "condition": "used",
+      "display": 9.6,
+      "memory": 32,
+      "price": 800,
+      "resolution": 640
+    },
+    {
+      "condition": "new",
+      "display": 9.6,
+      "memory": 32,
+      "price": 900,
+      "resolution": 640
+    },
+    {
+      "condition": "new",
+      "display": 9.6,
+      "memory": 128,
+      "price": 900,
+      "resolution": 640
+    }
+  ]

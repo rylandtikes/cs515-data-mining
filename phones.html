@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js">
+  </script>
+  <title>Phone TensorFlow.js</title>
+</head>
+
+<body>
+  <form>
+    Price:
+    <input name="price" id="price" size="7" value="85" />
+    <input type="button" onClick="runTF()" value="Train and test" />
+    <input type="reset" id="resetButton" />
+    Select feature to predict:
+    <select id="predictedFeature" name="predictedFeature">
+      <option value="display">display</option>
+      <option value="memory">memory</option>
+      <option value="resolution">resolution</option>
+    </select>
+    <br /><br class="e" />
+    The predicted feature is <span id="answer">0.00</span>
+    <div id="plot1"></div>
+    <div id="plot2"></div>
+  </form>
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: "",
+      measurementId: ""
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var usersRef = await firebase.database().ref('phones/');
+  </script>
+
+  <script>
+    let predictedFeature = 'display';
+
+    function extractData(obj) {
+      return { x: obj['price'], y: obj[predictedFeature] };
+    }
+
+    function removeErrors(obj) {
+      return obj.x != null && obj.y != null;
+    }
+
+    function tfPlot(values, surface) {
+      tfvis.render.scatterplot(surface,
+        { values: values, series: ['Original', 'Predicted'] },
+        { xLabel: 'price', yLabel: predictedFeature });
+    }
+
+
+
+    async function runTF() {
+
+      predictedFeature = document.getElementById("predictedFeature").value;
+
+      var data = [];
+      var snapshot = await firebase.database().ref('phones/').once("value");
+      snapshot.forEach(childSnapshot => {
+        var obj = childSnapshot.val();
+        data.push(obj);
+      });
+
+
+      values = data.map(extractData).filter(removeErrors);
+
+      const surface1 = document.getElementById("plot1");
+      const surface2 = document.getElementById("plot2");
+      tfPlot(values, surface1);
+
+      const inputs = values.map(obj => obj.x);
+      const labels = values.map(obj => obj.y);
+      const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]);
+      const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
+      const inputMin = inputTensor.min();
+      const inputMax = inputTensor.max();
+      const labelMin = labelTensor.min();
+      const labelMax = labelTensor.max();
+      const nmInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
+      const nmLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
+
+      const model = tf.sequential();
+      model.add(tf.layers.dense({ inputShape: [1], units: 1, useBias: true }));
+      model.add(tf.layers.dense({ units: 1, useBias: true }));
+      model.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
+
+      await trainModel(model, nmInputs, nmLabels, surface2);
+
+      let unX = tf.linspace(0, 1, 100);
+      let unY = model.predict(unX.reshape([100, 1]));
+      const unNormunX = unX.mul(inputMax.sub(inputMin)).add(inputMin);
+      const unNormunY = unY.mul(labelMax.sub(labelMin)).add(labelMin);
+      unX = unNormunX.dataSync();
+      unY = unNormunY.dataSync();
+
+      const predicted = Array.from(unX).map((val, i) => {
+        return { x: val, y: unY[i] };
+      });
+      tfPlot([values, predicted], surface1);
+
+      var price = parseInt(document.getElementById("price").value);
+      unX.sort((a, b) => a - b);
+      let x1 = unX[0];
+      for (let i = 1; i < unX.length - 1; i++) {
+        let x2 = unX[i];
+        if (x1 <= price && price < x2) {
+          document.getElementById("answer").innerHTML = Math.round(unY[i - 1]);
+          break;
+        }
+        x1 = x2;
+      }
+    }
+
+    async function trainModel(model, inputs, labels, surface) {
+      const batchSize = 25;
+      const epochs = 50;
+      const callbacks = tfvis.show.fitCallbacks(
+        surface, ['loss'], { callbacks: ['onEpochEnd'] }
+      );
+      return await model.fit(inputs, labels, { batchSize, epochs, shuffle: true, callbacks });
+    }
+
+    document.getElementById('resetButton').addEventListener('click', function () {
+      document.getElementById("answer").innerHTML = "0.00";
+      document.getElementById("plot1").innerHTML = '';
+      document.getElementById("plot2").innerHTML = '';
+    });
+  </script>
+</body>
+
+</html>
